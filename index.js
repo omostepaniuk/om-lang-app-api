@@ -1,8 +1,12 @@
+const utils = require('./utils/utils');
 const express = require('express');
+
 const app = express();
 const port = 3030;
 
-const bundles = [
+const [bundlesDir] = process.argv.slice(2);
+
+const mockBundles = [
   {
     id: 1,
     name: 'Bundle 1',
@@ -50,6 +54,7 @@ const bundles = [
           { word: 'newspaper', translation: 'el periodico' },
           { word: 'to work', translation: 'trabajar' },
           { word: 'success', translation: 'exito' },
+          { word: 'pain', translation: 'dolor'}
         ]
       },
       {
@@ -67,7 +72,7 @@ const bundles = [
 ]
 
 app.get('/bundles', (req, res) => {
-  res.json(bundles);
+  utils.parseBundles(bundlesDir).then(chunks => res.json(chunks));
 });
 
 app.listen(port, () => {
