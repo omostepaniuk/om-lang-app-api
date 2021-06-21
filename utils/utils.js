@@ -9,10 +9,9 @@ async function parseBundles(path) {
   const bundleChunks = bundleFiles.map(bundleEntry => mapBundleChunks(path, bundleEntry));
 
   return Promise.all(bundleChunks)
-    .then(chunks => ({
-      name: bundleFiles[0].name,
-      chunks
-    }));
+    .then(chunks => (
+      [{ name: bundleFiles[0].name, chunks }]
+    ));
 }
 
 function mapToBundleEntry(fileDirent) {
