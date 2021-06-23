@@ -10,7 +10,7 @@ async function parseBundles(path) {
 
   return Promise.all(bundleChunks)
     .then(chunks => (
-      [{ name: bundleFiles[0].name, chunks }]
+      [{ name: bundleFiles[0].name, order: 0, chunks }]
     ));
 }
 
