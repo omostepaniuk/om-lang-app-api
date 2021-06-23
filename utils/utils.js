@@ -9,9 +9,11 @@ async function parseBundles(path) {
   const bundleChunks = bundleFiles.map(bundleEntry => mapBundleChunks(path, bundleEntry));
 
   return Promise.all(bundleChunks)
-    .then(chunks => (
-      [{ name: bundleFiles[0].name, order: 0, chunks }]
-    ));
+    .then(chunks => {
+      const bundleName = bundleFiles[0].name.replace(/_/g, ' ');
+
+      return [{ name: bundleName, order: 0, chunks }]
+    });
 }
 
 function mapToBundleEntry(fileDirent) {
