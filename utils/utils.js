@@ -12,7 +12,7 @@ async function parseBundles(path) {
     .then(chunks => {
       const bundleName = bundleFiles[0].name.replace(/_/g, ' ');
 
-      return [{ name: bundleName, order: 0, chunks }]
+      return [{ name: bundleName, slug: toSlug(bundleName), order: 0, chunks }]
     });
 }
 
@@ -43,6 +43,10 @@ async function mapBundleChunks(basedir, bundleEntry) {
       }
     })
   };
+}
+
+function toSlug(name) {
+  return name.toLowerCase().trim().replace(/\s+/g, '-');
 }
 
 exports.parseBundles = parseBundles;
