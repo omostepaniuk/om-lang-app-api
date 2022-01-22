@@ -74,7 +74,7 @@ const mockBundles = [
 app.get('/bundles', (req, res) => {
   // TODO elaborate
   res.append('Access-Control-Allow-Origin', '*');
-  utils.parseBundles(bundlesDir).then(chunks => res.json(chunks));
+  utils.getBundles(bundlesDir).then(bundles => res.json(bundles));
 });
 
 app.listen(port, () => {

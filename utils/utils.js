@@ -1,25 +1,49 @@
 const fs = require('fs');
 
-async function parseBundles(path) {
-  const files = await fs.promises.readdir(path, { withFileTypes: true });
-  const bundleFiles = files
-    .filter(dirent => dirent.isFile())
-    .map(dirent => Object.assign({ fileDirent: dirent }, mapToBundleEntry(dirent)))
-    .sort((a, b) => a.order - b.order);
-  const bundleChunks = bundleFiles.map(bundleEntry => mapBundleChunks(path, bundleEntry));
+async function getBundles(basePath) {
+  const files = await fs.promises.readdir(basePath, { withFileTypes: true });
+  const bundleDirs = files
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+  const bundlesChunks = bundleDirs.map(bundleDirName => getBundleChunks(`${basePath}${bundleDirName}`));
 
-  return Promise.all(bundleChunks)
-    .then(chunks => {
-      const bundleName = bundleFiles[0].name.replace(/_/g, ' ');
-
-      return [{ name: bundleName, slug: toSlug(bundleName), order: 0, chunks }]
+  return Promise.all(bundlesChunks)
+    .then(perBundleChunks => {
+      return bundleDirs.map((name, index) => {
+        const chunks = perBundleChunks[index];
+        return {
+          name,
+          order: index,
+          slug: toSlug(name),
+          chunks
+        }
+      });
     });
+
 }
 
-function mapToBundleEntry(fileDirent) {
-  const matchGroups = /(.+)_(\d+)\.txt/g.exec(fileDirent.name);
-  if (!matchGroups) {
+async function getBundleChunks(bundlePath) {
+  const files = await fs.promises.readdir(bundlePath, { withFileTypes: true });
+  const bundleFiles = files
+    .filter(dirent => dirent.isFile())
+    .map(dirent => Object.assign({ fileDirent: dirent }, mapToChunkEntry(dirent, ['_', '-'])))
+    .sort((a, b) => a.order - b.order);
+  const bundleChunks = bundleFiles.map(bundleEntry => mapBundleChunks(bundlePath, bundleEntry));
+
+  return Promise.all(bundleChunks);
+}
+
+function mapToChunkEntry(fileDirent, delimiters) {
+  if (delimiters.length === 0) {
     throw 'The name of a content file does not match expected format';
+  }
+
+  const delimiter = delimiters[0];
+  const re = new RegExp(`(.+)${delimiter}(\\d+)\\.txt`, 'g');
+  const matchGroups = re.exec(fileDirent.name);
+
+  if (!matchGroups) {
+    return mapToChunkEntry(fileDirent, delimiters.slice(1));
   }
 
   return {
@@ -46,7 +70,7 @@ async function mapBundleChunks(basedir, bundleEntry) {
 }
 
 function toSlug(name) {
-  return name.toLowerCase().trim().replace(/\s+/g, '-');
+  return name.toLowerCase().trim().replace(/_+/g, '-');
 }
 
-exports.parseBundles = parseBundles;
+exports.getBundles = getBundles;
